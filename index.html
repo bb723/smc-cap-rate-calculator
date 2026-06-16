@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cap Rate Calculator | Standard Management Co.</title>
+<style>
+  :root{
+    --ink:#2b2f33;
+    --slate:#4a5258;
+    --muted:#8a9097;
+    --line:#e3e6e9;
+    --bg:#f4f5f6;
+    --card:#ffffff;
+    --accent:#3a4a5a;
+    --good:#1f7a4d;
+    --warn:#b4541a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.45;
+  }
+  header{
+    background:var(--card);border-bottom:1px solid var(--line);
+    padding:22px 20px;text-align:center;
+  }
+  header img{height:74px;width:auto;display:block;margin:0 auto 6px;}
+  header h1{
+    font-family:Georgia,"Times New Roman",serif;font-weight:500;
+    letter-spacing:.04em;font-size:22px;margin:6px 0 2px;color:var(--ink);
+  }
+  header p{margin:0;color:var(--muted);font-size:13px;letter-spacing:.02em;}
+  .wrap{max-width:1040px;margin:0 auto;padding:22px 16px 60px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:820px){.grid{grid-template-columns:1fr;}}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:18px 18px 8px;margin-bottom:18px;
+  }
+  .card h2{
+    font-family:Georgia,serif;font-weight:500;font-size:15px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--slate);margin:0 0 14px;
+    border-bottom:1px solid var(--line);padding-bottom:8px;
+  }
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .row label{font-size:13.5px;color:var(--slate);flex:1;}
+  .row .hint{display:block;font-size:11px;color:var(--muted);margin-top:1px;}
+  .field{position:relative;width:150px;flex:none;}
+  .field input{
+    width:100%;padding:8px 10px 8px 20px;border:1px solid var(--line);border-radius:6px;
+    font-size:14px;text-align:right;color:var(--ink);background:#fff;
+  }
+  .field.pct input,.field.plain input{padding-left:10px;}
+  .field .pre{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;}
+  .field.pct .post{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;}
+  .field.pct input{text-align:right;padding-right:22px;}
+  input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(58,74,90,.12);}
+  .toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+  .toggle button{
+    flex:1;padding:9px;border:0;background:#fff;color:var(--slate);font-size:13px;cursor:pointer;
+  }
+  .toggle button.active{background:var(--accent);color:#fff;font-weight:600;}
+  .computed input{background:#f7f8f9;color:var(--slate);}
+  .results .line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;}
+  .results .line span:first-child{color:var(--slate);}
+  .results .line span:last-child{font-variant-numeric:tabular-nums;font-weight:600;}
+  .results .sub span:first-child{padding-left:14px;color:var(--muted);font-weight:400;}
+  .results .total{font-weight:700;border-top:2px solid var(--ink);border-bottom:none;margin-top:4px;}
+  .headline{
+    background:var(--accent);color:#fff;border-radius:10px;padding:18px;text-align:center;margin-bottom:14px;
+  }
+  .headline .num{font-size:46px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+  .headline .lab{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-top:6px;}
+  .pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+  .pill{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;}
+  .pill .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .pill .l{font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:2px;}
+  .note{font-size:12px;color:var(--muted);margin:2px 0 14px;}
+  .actions{display:flex;gap:10px;margin-top:6px;}
+  .btn{padding:10px 14px;border-radius:7px;border:1px solid var(--accent);background:#fff;color:var(--accent);font-size:13px;cursor:pointer;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;padding:24px 16px 40px;}
+  footer a{color:var(--slate);text-decoration:none;}
+  .hidden{display:none;}
+  @media print{
+    body{background:#fff;}
+    .toggle,.actions,.note{display:none !important;}
+    .card,.headline{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.jpg" alt="Standard Management Co." />
+  <h1>Cap Rate Calculator</h1>
+  <p>Underwriting a potential project</p>
+</header>
+
+<div class="wrap">
+  <div class="card" style="margin-bottom:18px;">
+    <div class="row" style="margin-bottom:0;">
+      <label>Property name or address <span class="hint">Optional, shows on the printout</span></label>
+      <div class="field plain" style="width:280px;"><input id="propName" type="text" placeholder="e.g. 12 Elm St, Waterville" style="text-align:left;" /></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: inputs -->
+    <div>
+      <div class="card">
+        <h2>Purchase &amp; Income</h2>
+        <div class="row">
+          <label>Purchase price</label>
+          <div class="field"><span class="pre">$</span><input id="price" type="number" value="350000" min="0" step="1000" /></div>
+        </div>
+        <div class="row">
+          <label>Number of units</label>
+          <div class="field plain"><input id="units" type="number" value="4" min="1" step="1" /></div>
+        </div>
+        <div class="row">
+          <label>Average rent per unit <span class="hint">Monthly</span></label>
+          <div class="field"><span class="pre">$</span><input id="rent" type="number" value="1200" min="0" step="25" /></div>
+        </div>
+        <div class="row">
+          <label>Other income <span class="hint">Monthly, laundry / parking / etc.</span></label>
+          <div class="field"><span class="pre">$</span><input id="other" type="number" value="0" min="0" step="10" /></div>
+        </div>
+        <div class="row">
+          <label>Vacancy &amp; credit loss</label>
+          <div class="field pct"><input id="vacancy" type="number" value="6" min="0" max="100" step="0.5" /><span class="post">%</span></div>
+        </div>
+        <div class="row">
+          <label>Buildings / properties <span class="hint">Used for lawn &amp; snow, at $150 each per month</span></label>
+          <div class="field plain"><input id="properties" type="number" value="1" min="1" step="1" /></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Operating Expenses</h2>
+        <div class="toggle">
+          <button id="mRatio" class="active" type="button">Expense ratio</button>
+          <button id="mItem" type="button">Itemize</button>
+        </div>
+
+        <div id="ratioBlock">
+          <p class="note">Quick estimate. Total operating expenses as a percent of effective gross income. Switch to Itemize to enter every line by hand.</p>
+          <div class="row">
+            <label>Expense ratio</label>
+            <div class="field pct"><input id="ratio" type="number" value="45" min="0" max="100" step="1" /><span class="post">%</span></div>
+          </div>
+        </div>
+
+        <div id="itemBlock" class="hidden">
+          <p class="note">All figures annual unless noted. Management fee and lawn/snow auto-calculate but can be overridden.</p>
+          <div class="row"><label>Property taxes</label><div class="field"><span class="pre">$</span><input id="taxes" type="number" value="4200" min="0" step="50" /></div></div>
+          <div class="row"><label>Insurance</label><div class="field"><span class="pre">$</span><input id="insurance" type="number" value="2400" min="0" step="50" /></div></div>
+          <div class="row">
+            <label>Management fee <span class="hint">Percent of effective gross income</span></label>
+            <div class="field pct"><input id="mgmtPct" type="number" value="10" min="0" max="100" step="0.5" /><span class="post">%</span></div>
+          </div>
+          <div class="row sub computed"><label style="padding-left:14px;color:var(--muted);">Management fee (annual)</label><div class="field"><span class="pre">$</span><input id="mgmtDollars" type="number" readonly /></div></div>
+          <div class="row"><label>Water</label><div class="field"><span class="pre">$</span><input id="water" type="number" value="1800" min="0" step="25" /></div></div>
+          <div class="row"><label>Sewer</label><div class="field"><span class="pre">$</span><input id="sewer" type="number" value="1500" min="0" step="25" /></div></div>
+          <div class="row"><label>Electric <span class="hint">Common areas</span></label><div class="field"><span class="pre">$</span><input id="electric" type="number" value="900" min="0" step="25" /></div></div>
+          <div class="row"><label>Heat</label><div class="field"><span class="pre">$</span><input id="heat" type="number" value="3000" min="0" step="50" /></div></div>
+          <div class="row">
+            <label>Lawn &amp; snow <span class="hint">$150 per property per month, year round (overridable)</span></label>
+            <div class="field"><span class="pre">$</span><input id="lawnSnow" type="number" min="0" step="50" /></div>
+          </div>
+          <div class="row"><label>Repairs &amp; maintenance</label><div class="field"><span class="pre">$</span><input id="repairs" type="number" value="0" min="0" step="50" /></div></div>
+          <div class="row"><label>Other <span class="hint">Trash, reserves, etc.</span></label><div class="field"><span class="pre">$</span><input id="otherExp" type="number" value="0" min="0" step="50" /></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div>
+      <div class="headline">
+        <div class="num" id="capRate">0.0%</div>
+        <div class="lab">Capitalization Rate</div>
+      </div>
+
+      <div class="pills">
+        <div class="pill"><div class="v" id="noi">$0</div><div class="l">Annual NOI</div></div>
+        <div class="pill"><div class="v" id="perUnit">$0</div><div class="l">Price / unit</div></div>
+        <div class="pill"><div class="v" id="actualRatio">0%</div><div class="l">Expense ratio</div></div>
+      </div>
+
+      <div class="card results" style="margin-top:18px;">
+        <h2>Pro Forma</h2>
+        <div class="line"><span>Gross potential rent</span><span id="gpr">$0</span></div>
+        <div class="line sub"><span>Less vacancy &amp; credit loss</span><span id="vacLoss">$0</span></div>
+        <div class="line sub"><span>Plus other income</span><span id="otherInc">$0</span></div>
+        <div class="line"><span>Effective gross income</span><span id="egi">$0</span></div>
+        <div class="line sub"><span>Less operating expenses</span><span id="opex">$0</span></div>
+        <div class="line total"><span>Net operating income</span><span id="noi2">$0</span></div>
+      </div>
+
+      <div class="card">
+        <h2>What price hits a target cap rate?</h2>
+        <div class="row">
+          <label>Target cap rate</label>
+          <div class="field pct"><input id="targetCap" type="number" value="8" min="0.5" max="30" step="0.25" /><span class="post">%</span></div>
+        </div>
+        <div class="line total" style="border-top:2px solid var(--ink);padding-top:10px;"><span>Implied value at that cap</span><span id="impliedValue">$0</span></div>
+        <p class="note" style="margin-top:10px;">Implied value = NOI divided by target cap rate. Compare it to the asking price to gauge the deal.</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" type="button" onclick="window.print()">Print / Save PDF</button>
+        <button class="btn" type="button" id="resetBtn">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Standard Management Company &nbsp;&middot;&nbsp; Central Maine property management<br>
+  Call or text (207) 503-7989 &nbsp;&middot;&nbsp; bbrockway@standardmanagementco.com<br>
+  <span style="font-size:11px;">For estimating purposes only. Verify all figures before relying on them.</span>
+</footer>
+
+<script>
+  var $ = function(id){ return document.getElementById(id); };
+  var mode = 'ratio';
+
+  function num(id){ var v = parseFloat($(id).value); return isNaN(v) ? 0 : v; }
+  function money(n){
+    return (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
+  }
+
+  function setMode(m){
+    mode = m;
+    $('mRatio').classList.toggle('active', m === 'ratio');
+    $('mItem').classList.toggle('active', m === 'item');
+    $('ratioBlock').classList.toggle('hidden', m !== 'ratio');
+    $('itemBlock').classList.toggle('hidden', m !== 'item');
+    calc();
+  }
+
+  function calc(){
+    var price = num('price');
+    var units = Math.max(0, num('units'));
+    var rent = num('rent');
+    var otherMo = num('other');
+    var vacancyPct = num('vacancy');
+    var properties = Math.max(0, num('properties'));
+
+    var gpr = units * rent * 12;
+    var otherInc = otherMo * 12;
+    var vacLoss = gpr * (vacancyPct / 100);
+    var egi = gpr - vacLoss + otherInc;
+
+    // lawn & snow default: $150 per property per month, year round
+    var lawnDefault = 150 * properties * 12;
+    if ($('lawnSnow').value === '' || $('lawnSnow').dataset.auto === '1'){
+      $('lawnSnow').value = lawnDefault;
+      $('lawnSnow').dataset.auto = '1';
+    }
+
+    // management fee auto from EGI
+    var mgmtPct = num('mgmtPct');
+    var mgmt = egi * (mgmtPct / 100);
+    $('mgmtDollars').value = Math.round(mgmt);
+
+    var opex;
+    if (mode === 'ratio'){
+      opex = egi * (num('ratio') / 100);
+    } else {
+      opex = num('taxes') + num('insurance') + mgmt + num('water') + num('sewer')
+           + num('electric') + num('heat') + num('lawnSnow') + num('repairs') + num('otherExp');
+    }
+
+    var noi = egi - opex;
+    var capRate = price > 0 ? (noi / price) * 100 : 0;
+    var actualRatio = egi > 0 ? (opex / egi) * 100 : 0;
+    var perUnit = units > 0 ? price / units : 0;
+    var targetCap = num('targetCap');
+    var implied = targetCap > 0 ? noi / (targetCap / 100) : 0;
+
+    $('gpr').textContent = money(gpr);
+    $('vacLoss').textContent = '-' + money(vacLoss);
+    $('otherInc').textContent = money(otherInc);
+    $('egi').textContent = money(egi);
+    $('opex').textContent = '-' + money(opex);
+    $('noi2').textContent = money(noi);
+    $('noi').textContent = money(noi);
+    $('capRate').textContent = capRate.toFixed(2) + '%';
+    $('actualRatio').textContent = actualRatio.toFixed(0) + '%';
+    $('perUnit').textContent = money(perUnit);
+    $('impliedValue').textContent = money(implied);
+  }
+
+  // If the user types their own lawn/snow number, stop auto-filling it
+  $('lawnSnow').addEventListener('input', function(){ this.dataset.auto = '0'; calc(); });
+  // properties change should refresh the lawn auto value
+  $('properties').addEventListener('input', function(){ $('lawnSnow').dataset.auto = '1'; calc(); });
+
+  document.querySelectorAll('input').forEach(function(el){
+    if (el.id !== 'lawnSnow' && el.id !== 'properties'){
+      el.addEventListener('input', calc);
+    }
+  });
+
+  $('mRatio').addEventListener('click', function(){ setMode('ratio'); });
+  $('mItem').addEventListener('click', function(){ setMode('item'); });
+  $('resetBtn').addEventListener('click', function(){ location.reload(); });
+
+  calc();
+</script>
+</body>
+</html>
